@@ -7,6 +7,7 @@
     "src/preload/*.d.ts"
   ],
   "compilerOptions": {
+    "strict": true,
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
@@ -14,6 +15,7 @@
       "@renderer/*": [
         "src/renderer/src/*"
       ]
-    }
+    },
+    "isolatedModules": false
   }
 }

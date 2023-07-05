@@ -1,8 +1,10 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/main/*", "src/preload/*", "misskey/packages/misskey-js"],
+  "include": ["electron.vite.config.*", "src/main/*", "src/preload/*", "misskey/packages/misskey-js/src"],
   "compilerOptions": {
+    "strict": true,
     "composite": true,
-    "types": ["electron-vite/node"]
+    "types": ["electron-vite/node"],
+    "isolatedModules": false
   }
 }
