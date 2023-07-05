@@ -1,0 +1,3 @@
+[submodule "misskey"]
+	path = misskey
+	url = git@github.com:misskey-dev/misskey.git
