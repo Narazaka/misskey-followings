@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: misskey-followers
+productName: misskey-followings
 directories:
   buildResources: build
 files:
@@ -13,7 +13,7 @@ asarUnpack:
   - resources/**
 afterSign: build/notarize.js
 win:
-  executableName: misskey-followers
+  executableName: misskey-followings
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -39,5 +39,5 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  releaseType: release
