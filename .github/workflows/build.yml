@@ -13,8 +13,8 @@ on:
     branches: ["master"]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  win:
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -27,5 +27,33 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run build:win
+
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+          cache: "npm"
+      - run: npm ci
       - run: npm run build:linux
+
+  mac:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+          cache: "npm"
+      - run: npm ci
       - run: npm run build:mac
