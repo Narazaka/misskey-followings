@@ -13,6 +13,9 @@ export const store = new Store<AppStore>({
           },
           key: {
             type: 'string' as const
+          },
+          enabled: {
+            type: 'boolean' as const
           }
         },
         required: ['site', 'key']

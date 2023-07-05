@@ -86,23 +86,83 @@ ipcMain.on('removeKey', (e, value: { key: string }) => {
   store.set('keys', keys)
   e.sender.send('keys', store.get('keys') || [])
 })
+ipcMain.on('enableKey', (e, value: { key: string }) => {
+  const keys = store.get('keys') || []
+  const targetIndex = keys.findIndex((key) => key.key === value.key)
+  keys.splice(targetIndex, 1, { ...keys[targetIndex], enabled: undefined })
+  store.set('keys', keys)
+  e.sender.send('keys', store.get('keys') || [])
+})
+ipcMain.on('disableKey', (e, value: { key: string }) => {
+  const keys = store.get('keys') || []
+  const targetIndex = keys.findIndex((key) => key.key === value.key)
+  keys.splice(targetIndex, 1, { ...keys[targetIndex], enabled: false })
+  store.set('keys', keys)
+  e.sender.send('keys', store.get('keys') || [])
+})
 
 import * as Misskey from '../../misskey/packages/misskey-js/src'
 import { FollowingsMap } from '../preload/FollowingsMap'
+const limit = 50
 ipcMain.on('fetchFollowings', async (e) => {
   const keys = store.get('keys') || []
-  Promise.all(
-    keys.map(async (key) => {
-      const cli = new Misskey.api.APIClient({ origin: key.site, credential: key.key })
-      const user = await cli.request('i')
-      const followings = await cli.request('users/following', { userId: user.id })
-      return { [key.key]: followings }
-    })
-  ).then((results) => {
-    let value: FollowingsMap = {}
-    for (const result of results) {
-      value = { ...value, ...result }
-    }
-    e.sender.send('followings', value)
-  })
+  await Promise.all(
+    keys
+      .filter((key) => key.enabled !== false)
+      .map(async (key) => {
+        try {
+          const cli = new Misskey.api.APIClient({ origin: key.site, credential: key.key })
+          const instance = await cli.request('federation/show-instance', {
+            host: new URL(key.site).hostname
+          })
+          const user = await cli.request('i')
+          const followings: Misskey.entities.FollowingFolloweePopulated[] = []
+          let untilId: string | undefined = undefined
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            const followingsPart = await cli.request('users/following', {
+              userId: user.id,
+              limit,
+              untilId
+            })
+            followings.push(...followingsPart)
+            if (followingsPart.length !== limit) break
+            untilId = followingsPart[followingsPart.length - 1].id
+          }
+
+          const map: FollowingsMap = { [key.key]: { followings, user, instance } }
+          e.sender.send('followings', map)
+        } catch (error) {
+          e.sender.send('followings', { [key.key]: undefined }, (error as Error).message)
+        }
+      })
+  )
+})
+
+ipcMain.on('follow', async (e, value: { key: string; username: string; host: string }) => {
+  const keys = store.get('keys') || []
+  const targetKey = keys.find((key) => key.key === value.key)
+  if (!targetKey) return
+  const cli = new Misskey.api.APIClient({ origin: targetKey.site, credential: targetKey.key })
+  try {
+    const { id } = await cli.request('users/show', { host: value.host, username: value.username })
+    await cli.request('following/create', { userId: id })
+    e.sender.send('followed', value)
+  } catch (error) {
+    e.sender.send('followed', value, (error as Error).message)
+  }
+})
+
+ipcMain.on('unfollow', async (e, value: { key: string; username: string; host: string }) => {
+  const keys = store.get('keys') || []
+  const targetKey = keys.find((key) => key.key === value.key)
+  if (!targetKey) return
+  const cli = new Misskey.api.APIClient({ origin: targetKey.site, credential: targetKey.key })
+  try {
+    const { id } = await cli.request('users/show', { host: value.host, username: value.username })
+    await cli.request('following/delete', { userId: id })
+    e.sender.send('unfollowed', value)
+  } catch (error) {
+    e.sender.send('unfollowed', value, (error as Error).message)
+  }
 })

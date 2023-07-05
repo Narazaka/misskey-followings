@@ -7,7 +7,7 @@ import Followings from './components/Followings'
 function App(): JSX.Element {
   const [keys, setKeys] = useState<AppStore['keys']>([])
   return (
-    <Container>
+    <Container maw="100%">
       <ApiKeys keys={keys} setKeys={setKeys} />
       <Followings keys={keys} />
     </Container>
