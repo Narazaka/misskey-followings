@@ -1,10 +1,11 @@
 {
-  "name": "misskey-followers",
+  "name": "misskey-followings",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "Manage Misskey followings",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://www.electronjs.org",
+  "author": "narazaka",
+  "license": "Zlib",
+  "homepage": "https://github.com/Narazaka",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
@@ -15,9 +16,9 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "build:win": "npm run build && electron-builder --win --config",
-    "build:mac": "electron-vite build && electron-builder --mac --config",
-    "build:linux": "electron-vite build && electron-builder --linux --config"
+    "build:win": "npm run build && electron-builder --win --config --publish onTag",
+    "build:mac": "electron-vite build && electron-builder --mac --config --publish onTag",
+    "build:linux": "electron-vite build && electron-builder --linux --config --publish onTag"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
