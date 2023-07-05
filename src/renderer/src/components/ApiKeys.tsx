@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 
 import type { AppStore } from '../../../preload/AppStore'
-import { TextInput, Stack, Button, Text, CloseButton, Group, Badge } from '@mantine/core'
+import { TextInput, Button, Text, CloseButton, Group, Badge } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 
 function ApiKeys({
