@@ -16,9 +16,9 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "build:win": "npm run build && electron-builder --win --publish onTag",
-    "build:mac": "electron-vite build && electron-builder --mac --publish onTag",
-    "build:linux": "electron-vite build && electron-builder --linux --publish onTag"
+    "build:win": "npm run build && electron-builder --win --publish always",
+    "build:mac": "electron-vite build && electron-builder --mac --publish always",
+    "build:linux": "electron-vite build && electron-builder --linux --publish always"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
