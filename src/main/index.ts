@@ -27,6 +27,14 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
+  const handleUrlOpen = (e, url) => {
+    if (url.match(/^http/)) {
+      e.preventDefault()
+      shell.openExternal(url)
+    }
+  }
+  mainWindow.webContents.on('will-navigate', handleUrlOpen)
+
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -126,7 +134,7 @@ ipcMain.on('fetchFollowings', async (e) => {
               untilId
             })
             followings.push(...followingsPart)
-            if (followingsPart.length !== limit) break
+            if (followingsPart.length === 0) break
             untilId = followingsPart[followingsPart.length - 1].id
           }
 

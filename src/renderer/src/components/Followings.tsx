@@ -20,26 +20,37 @@ import { uniqBy } from '@renderer/util/uniqBy'
 import { set } from '@renderer/util/set'
 import { useInputState, useLocalStorage } from '@mantine/hooks'
 import { Instance, User } from 'misskey/packages/misskey-js/src/entities'
+import { uniqSortBy } from '@renderer/util/uniqSortBy'
+import { sortBy } from '@renderer/util/sortBy'
 
 function Followings({ keys }: { keys: AppStore['keys'] }): JSX.Element {
   const [followingsMap, setFollowingsMap] = useState<FollowingsMap>({})
   const allFollowings = useMemo(
     () =>
-      uniqBy(
-        keys
-          .filter((key) => followingsMap[key.key])
-          .map((key) => ({ ...followingsMap[key.key], key }))
-          .flatMap(({ followings, instance, key }) =>
-            followings.map((following) => ({
-              ...following,
-              gid: `@${following.followee.username}@${
-                following.followee.host || instance?.host || new URL(key.site).hostname
-              }`,
-              host: following.followee.host || instance?.host || new URL(key.site).hostname,
-              faviconUrl: following.followee.instance?.faviconUrl || instance?.faviconUrl
-            }))
-          ),
-        (f) => f.gid
+      sortBy(
+        uniqSortBy(
+          keys
+            .filter((key) => followingsMap[key.key])
+            .map((key) => ({ ...followingsMap[key.key], key, source: new URL(key.site).hostname }))
+            .flatMap(({ followings, instance, key, source }) =>
+              followings.map((following) => ({
+                ...following,
+                gid: `@${following.followee.username}@${
+                  following.followee.host || instance?.host || new URL(key.site).hostname
+                }`,
+                host: following.followee.host || instance?.host || new URL(key.site).hostname,
+                faviconUrl: following.followee.instance?.faviconUrl || instance?.faviconUrl,
+                source
+              }))
+            ),
+          (f) => f.gid,
+          (f) => {
+            if (f.host === f.source) return 0
+            if (f.followee.name) return 1
+            return 2
+          }
+        ),
+        (f) => f.followee.username
       ),
     [followingsMap, keys]
   )
@@ -283,19 +294,24 @@ function Following({
             loading: true
           })
         }
+        const host = instance?.host || new URL(storeKey.site).hostname
         return (
           <Button
-            color={isFollowing ? 'red' : 'blue'}
-            disabled={isFetching}
+            color={following.host === host ? 'green' : 'blue'}
+            disabled={
+              isFetching ||
+              (following.followee.username === user.username && following.host === host)
+            }
             loading={isFetching}
             onClick={onClick}
+            variant={isFollowing ? 'filled' : 'light'}
           >
             <Image maw="16px" src={instance?.faviconUrl} />
             <Avatar size="xs" src={user.avatarUrl} />
             {displayName && <Text>{user.name}</Text>}
             <Text>
               {displayUsername && `@${user.username}`}
-              {displayHost && `@${instance?.host || new URL(storeKey.site).hostname}`}
+              {displayHost && `@${host}`}
             </Text>
           </Button>
         )
@@ -341,12 +357,16 @@ const FollowingInfo = memo(function FollowingInfo({
     <>
       <Group>
         <Avatar radius="xl" src={following.followee.avatarUrl} />
-        <Text>{following.followee.name}</Text>
+        <Text>{following.followee.name || following.followee.username}</Text>
       </Group>
-      <Group>
-        <Image maw="16px" src={following.faviconUrl} />
-        <Text>{following.gid}</Text>
-      </Group>
+      <a
+        href={following.followee.url || `https://${following.host}/@${following.followee.username}`}
+      >
+        <Group>
+          <Image maw="16px" src={following.faviconUrl} />
+          <Text>{following.gid}</Text>
+        </Group>
+      </a>
     </>
   )
 })
