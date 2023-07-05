@@ -44,7 +44,7 @@
     "electron-vite": "^1.0.23",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-react": "^7.32.2",
     "prettier": "^2.8.8",
     "react": "^18.2.0",

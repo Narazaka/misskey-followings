@@ -1,25 +1,25 @@
-import Store from 'electron-store'
-import { AppStore } from '../preload/AppStore'
+import Store from "electron-store";
+import { AppStore } from "../preload/AppStore";
 
 export const store = new Store<AppStore>({
   schema: {
     keys: {
-      type: 'array',
+      type: "array",
       items: {
-        type: 'object',
+        type: "object",
         properties: {
           site: {
-            type: 'string' as const
+            type: "string" as const,
           },
           key: {
-            type: 'string' as const
+            type: "string" as const,
           },
           enabled: {
-            type: 'boolean' as const
-          }
+            type: "boolean" as const,
+          },
         },
-        required: ['site', 'key']
-      }
-    }
-  }
-})
+        required: ["site", "key"],
+      },
+    },
+  },
+});
