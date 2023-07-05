@@ -1,7 +1,8 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { store } from './store'
 
 function createWindow(): void {
   // Create the browser window.
@@ -69,3 +70,39 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('getKeys', (e) => {
+  e.sender.send('keys', store.get('keys') || [])
+})
+ipcMain.on('addKey', (e, value: { key: string; site: string }) => {
+  console.log('addKey', value)
+  store.set('keys', (store.get('keys') || []).concat(value))
+  e.sender.send('keys', store.get('keys') || [])
+})
+ipcMain.on('removeKey', (e, value: { key: string }) => {
+  const keys = store.get('keys') || []
+  const targetIndex = keys.findIndex((key) => key.key === value.key)
+  keys.splice(targetIndex, 1)
+  store.set('keys', keys)
+  e.sender.send('keys', store.get('keys') || [])
+})
+
+import * as Misskey from '../../misskey/packages/misskey-js/src'
+import { FollowingsMap } from '../preload/FollowingsMap'
+ipcMain.on('fetchFollowings', async (e) => {
+  const keys = store.get('keys') || []
+  Promise.all(
+    keys.map(async (key) => {
+      const cli = new Misskey.api.APIClient({ origin: key.site, credential: key.key })
+      const user = await cli.request('i')
+      const followings = await cli.request('users/following', { userId: user.id })
+      return { [key.key]: followings }
+    })
+  ).then((results) => {
+    let value: FollowingsMap = {}
+    for (const result of results) {
+      value = { ...value, ...result }
+    }
+    e.sender.send('followings', value)
+  })
+})
