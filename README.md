@@ -4,7 +4,7 @@ Misskey のフォロー横断管理ツール
 
 ## インストール
 
-[リリース](releases/latest)からそれっぽいのを選んでダウンロードしてインストール
+[リリース](https://github.com/Narazaka/misskey-followings/releases/latest)からそれっぽいのを選んでダウンロードしてインストール
 
 ## 使い方
 
