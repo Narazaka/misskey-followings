@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: net.narazaka.misskey-followings
 productName: misskey-followings
 directories:
   buildResources: build
@@ -33,7 +33,7 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: narazaka.net
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
