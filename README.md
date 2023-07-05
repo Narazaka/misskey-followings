@@ -1,6 +1,22 @@
-# misskey-followers
+# misskey-followings
 
-An Electron application with React and TypeScript
+Misskey のフォロー横断管理ツール
+
+## 使い方
+
+### API key を作って登録する
+
+![1](docs/desc1.png)
+
+![2](docs/desc2.png)
+
+![3](docs/desc3.png)
+
+![4](docs/desc4.png)
+
+### 使う
+
+Refresh ボタンを押してよしなに
 
 ## Recommended IDE Setup
 
