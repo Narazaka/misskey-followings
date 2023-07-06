@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { AppStore } from "../../../preload/AppStore";
 import { TextInput, Button, Text, CloseButton, Group, Badge } from "@mantine/core";
@@ -21,7 +21,7 @@ function ApiKeys({
     };
   }, []);
 
-  const [site, setSite] = useInputState("");
+  const [site, setSite] = useState("");
   const [key, setKey] = useInputState("");
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -71,7 +71,7 @@ function ApiKeys({
           withAsterisk
           required
           value={site}
-          onChange={setSite}
+          onChange={(e) => setSite(e.target.value.trim().replace(/\/$/, ""))}
         />
         <TextInput
           label="key"
