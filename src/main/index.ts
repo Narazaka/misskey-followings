@@ -140,8 +140,21 @@ ipcMain.on("fetchFollowings", async (e) => {
             if (followingsPart.length === 0) break;
             untilId = followingsPart[followingsPart.length - 1].id;
           }
+          const followers: Misskey.entities.FollowingFollowerPopulated[] = [];
+          untilId = undefined;
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            const followersPart = await cli.request("users/followers", {
+              userId: user.id,
+              limit,
+              untilId,
+            });
+            followers.push(...followersPart);
+            if (followersPart.length === 0) break;
+            untilId = followersPart[followersPart.length - 1].id;
+          }
 
-          const map: FollowingsMap = { [key.key]: { followings, user, instance } };
+          const map: FollowingsMap = { [key.key]: { followings, followers, user, instance } };
           e.sender.send("followings", map);
         } catch (error) {
           e.sender.send("followings", { [key.key]: undefined }, (error as Error).message);
