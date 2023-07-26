@@ -146,9 +146,11 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
       "followings",
       (_e, value: FollowingsMap, error: string) => {
         setFollowingsMap((prev) => ({ ...prev, ...value }));
+        const key = Object.keys(value)[0];
+        notifications.hide(`${key}:fetchFollowings`);
         if (error) {
           notifications.show({
-            title: `Error`,
+            title: `Error on ${keys.find((k) => k.key === key)?.site}`,
             message: error,
             withCloseButton: true,
             color: "red",
@@ -163,6 +165,16 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const refresh = () => {
+    for (const key of keys) {
+      notifications.show({
+        id: `${key.key}:fetchFollowings`,
+        title: "Fetching...",
+        message: key.site,
+        loading: true,
+        withCloseButton: false,
+        autoClose: false,
+      });
+    }
     window.electron.ipcRenderer.send("fetchFollowings");
   };
 
