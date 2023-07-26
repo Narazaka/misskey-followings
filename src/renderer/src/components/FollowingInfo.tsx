@@ -11,7 +11,7 @@ export const FollowingInfo = memo(function FollowingInfo({ following }: { follow
       </Group>
       <a href={following.url || `https://${following.host}/@${following.username}`}>
         <Group>
-          <Image maw="16px" src={following.faviconUrl} />
+          {following.faviconUrl && <Image maw="16px" src={following.faviconUrl} />}
           <Text>{following.gid}</Text>
         </Group>
       </a>
