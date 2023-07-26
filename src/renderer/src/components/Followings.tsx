@@ -276,31 +276,29 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
         </Chip>
       </Group>
       <Grid my="xs">
-        {allFollowings
-          .filter(
-            (following) =>
-              ((showFollowings && following.type === "following") ||
-                (showFollowers && following.type === "follower")) &&
-              (!filter || following.gid.includes(filter) || following.name?.includes(filter)) &&
-              (!filterHosts.length || filterHosts.includes(following.host)),
-          )
-          .map((following) => {
-            return (
-              <Following
-                key={following.id}
-                following={following}
-                keys={keys}
-                followingsMap={followingsMap}
-                followingExistsMap={followingExistsMap}
-                followerExistsMap={followerExistsMap}
-                setFetching={setFetching}
-                fetching={fetching}
-                displayName={displayName}
-                displayUsername={displayUsername}
-                displayHost={displayHost}
-              />
-            );
-          })}
+        {allFollowings.map((following) => {
+          return (
+            <Following
+              key={following.id}
+              following={following}
+              keys={keys}
+              followingsMap={followingsMap}
+              followingExistsMap={followingExistsMap}
+              followerExistsMap={followerExistsMap}
+              setFetching={setFetching}
+              fetching={fetching}
+              displayName={displayName}
+              displayUsername={displayUsername}
+              displayHost={displayHost}
+              show={
+                ((showFollowings && following.type === "following") ||
+                  (showFollowers && following.type === "follower")) &&
+                (!filter || following.gid.includes(filter) || following.name?.includes(filter)) &&
+                (!filterHosts.length || filterHosts.includes(following.host))
+              }
+            />
+          );
+        })}
       </Grid>
     </Box>
   );
@@ -319,6 +317,7 @@ function Following({
   displayName,
   displayUsername,
   displayHost,
+  show,
 }: {
   following: FollowInfo;
   keys: AppStore["keys"];
@@ -330,6 +329,7 @@ function Following({
   displayName: boolean;
   displayUsername: boolean;
   displayHost: boolean;
+  show: boolean;
 }) {
   const FollowButton = useMemo(
     () =>
@@ -399,7 +399,12 @@ function Following({
   );
 
   return (
-    <Stack p="xs" m="xs" sx={{ borderRadius: "10px", border: "1px solid #ccc" }}>
+    <Stack
+      p="xs"
+      m="xs"
+      sx={{ borderRadius: "10px", border: "1px solid #ccc" }}
+      display={show ? undefined : "none"}
+    >
       <FollowingInfo following={following} />
       {keys
         .filter((key) => key.enabled !== false && followingsMap[key.key])
