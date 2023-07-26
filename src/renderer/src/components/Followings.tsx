@@ -23,9 +23,21 @@ import { Instance, User } from "misskey/packages/misskey-js/src/entities";
 import { uniqSortBy } from "@renderer/util/uniqSortBy";
 import { sortBy } from "@renderer/util/sortBy";
 
+type FollowInfo = {
+  id: string;
+  name: string;
+  username: string;
+  url: string | null;
+  avatarUrl: string;
+  gid: string;
+  host: string;
+  faviconUrl: string | null;
+  source: string;
+}
+
 function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
   const [followingsMap, setFollowingsMap] = useState<FollowingsMap>({});
-  const allFollowings = useMemo(
+  const allFollowings: FollowInfo[] = useMemo(
     () =>
       sortBy(
         uniqSortBy(
@@ -34,7 +46,11 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
             .map((key) => ({ ...followingsMap[key.key], key, source: new URL(key.site).hostname }))
             .flatMap(({ followings, instance, key, source }) =>
               followings.map((following) => ({
-                ...following,
+                id: following.id,
+                name: following.followee.name,
+                username: following.followee.username,
+                url: following.followee.url,
+                avatarUrl: following.followee.avatarUrl,
                 gid: `@${following.followee.username}@${
                   following.followee.host || instance?.host || new URL(key.site).hostname
                 }`,
@@ -46,11 +62,11 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
           (f) => f.gid,
           (f) => {
             if (f.host === f.source) return 0;
-            if (f.followee.name) return 1;
+            if (f.name) return 1;
             return 2;
           },
         ),
-        (f) => f.followee.username,
+        (f) => f.username,
       ),
     [followingsMap, keys],
   );
@@ -210,7 +226,7 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
             (following) =>
               (!filter ||
                 following.gid.includes(filter) ||
-                following.followee.name?.includes(filter)) &&
+                following.name?.includes(filter)) &&
               (!filterHosts.length || filterHosts.includes(following.host)),
           )
           .map((following) => {
@@ -247,11 +263,7 @@ function Following({
   displayUsername,
   displayHost,
 }: {
-  following: import("misskey-js").entities.FollowingFolloweePopulated & {
-    gid: string;
-    host: string;
-    faviconUrl: string | null;
-  };
+  following: FollowInfo;
   keys: AppStore["keys"];
   followingsMap: FollowingsMap;
   followingExistsMap: Record<string, Set<string>>;
@@ -278,14 +290,14 @@ function Following({
       }) {
         const followParams = {
           key: storeKey.key,
-          username: following.followee.username,
+          username: following.username,
           host: following.host,
         };
         const followId = `@${followParams.username}@${followParams.host}:${followParams.key}`;
+        const gid = `@${followParams.username}@${followParams.host}`;
         const onClick = () => {
           setFetching((prev) => set(prev).add(followId));
           window.electron.ipcRenderer.send(isFollowing ? "unfollow" : "follow", followParams);
-          const gid = `@${followParams.username}@${followParams.host}`;
           notifications.show({
             id: `${followId}:loading`,
             title: isFollowing ? "Unfollow" : "Follow",
@@ -300,7 +312,7 @@ function Following({
             color={following.host === host ? "green" : "blue"}
             disabled={
               isFetching ||
-              (following.followee.username === user.username && following.host === host)
+              (following.username === user.username && following.host === host)
             }
             loading={isFetching}
             onClick={onClick}
@@ -326,7 +338,7 @@ function Following({
         .filter((key) => key.enabled !== false && followingsMap[key.key])
         .map((key) => {
           const isFollowing = followingExistsMap[key.key]?.has(following.gid);
-          const followId = `@${following.followee.username}@${following.host}:${key.key}`;
+          const followId = `@${following.username}@${following.host}:${key.key}`;
           const isFetching = fetching.has(followId);
           const { user, instance } = followingsMap[key.key];
           return (
@@ -347,20 +359,16 @@ function Following({
 const FollowingInfo = memo(function FollowingInfo({
   following,
 }: {
-  following: import("misskey-js").entities.FollowingFolloweePopulated & {
-    gid: string;
-    host: string;
-    faviconUrl: string | null;
-  };
+  following: FollowInfo;
 }) {
   return (
     <>
       <Group>
-        <Avatar radius="xl" src={following.followee.avatarUrl} />
-        <Text>{following.followee.name || following.followee.username}</Text>
+        <Avatar radius="xl" src={following.avatarUrl} />
+        <Text>{following.name || following.username}</Text>
       </Group>
       <a
-        href={following.followee.url || `https://${following.host}/@${following.followee.username}`}
+        href={following.url || `https://${following.host}/@${following.username}`}
       >
         <Group>
           <Image maw="16px" src={following.faviconUrl} />
