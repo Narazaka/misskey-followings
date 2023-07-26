@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { AppStore } from "../../../preload/AppStore";
-import { Button, Box, Group, Grid, TextInput, MultiSelect, Chip, Switch } from "@mantine/core";
+import { Button, Box, Group, TextInput, MultiSelect, Chip, Switch } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { FollowingsMap } from "src/preload/FollowingsMap";
 import { uniqBy } from "@renderer/util/uniqBy";
 import { set } from "@renderer/util/set";
-import { useInputState, useLocalStorage } from "@mantine/hooks";
+import { useInputState, useLocalStorage, useViewportSize } from "@mantine/hooks";
 import { uniqSortBy } from "@renderer/util/uniqSortBy";
 import { sortBy } from "@renderer/util/sortBy";
 import { Following } from "./Following";
+import { FixedSizeGrid } from "react-window";
 
 export type FollowInfo = {
   id: string;
@@ -233,8 +234,33 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
     defaultValue: true,
   });
 
+  const allFollowingsFiltered = useMemo(
+    () =>
+      allFollowings.filter(
+        (following) =>
+          ((showFollowings && following.type === "following") ||
+            (showFollowers && following.type === "follower")) &&
+          (!filter || following.gid.includes(filter) || following.name?.includes(filter)) &&
+          (!filterHosts.length || filterHosts.includes(following.host)),
+      ),
+    [allFollowings, showFollowings, showFollowers, filter, filterHosts],
+  );
+
+  const { height: viewportHeight } = useViewportSize();
+  const ref = useRef<HTMLDivElement>(null);
+  const bounds = ref.current?.getBoundingClientRect();
+
+  const height = viewportHeight - (bounds?.top || 100);
+  const width = bounds?.width || window.innerWidth;
+
+  const columnCount = Math.floor(width / 320);
+  const columnWidth = (width - 20) / columnCount;
+  const elementWidth = `${columnWidth - 20}`;
+  const rowCount = Math.ceil(allFollowingsFiltered.length / columnCount);
+  const rowHeight = 113 + 46 * Object.keys(followingsMap).length;
+
   return (
-    <Box my="xs">
+    <Box mt="xs">
       <Group>
         <Button onClick={refresh}>refresh</Button>
         <TextInput
@@ -272,31 +298,43 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
           host
         </Chip>
       </Group>
-      <Grid my="xs">
-        {allFollowings.map((following) => {
-          return (
-            <Following
-              key={following.id}
-              following={following}
-              keys={keys}
-              followingsMap={followingsMap}
-              followingExistsMap={followingExistsMap}
-              followerExistsMap={followerExistsMap}
-              setFetching={setFetching}
-              fetching={fetching}
-              displayName={displayName}
-              displayUsername={displayUsername}
-              displayHost={displayHost}
-              show={
-                ((showFollowings && following.type === "following") ||
-                  (showFollowers && following.type === "follower")) &&
-                (!filter || following.gid.includes(filter) || following.name?.includes(filter)) &&
-                (!filterHosts.length || filterHosts.includes(following.host))
-              }
-            />
-          );
-        })}
-      </Grid>
+      <Box mt="xs">
+        <Box ref={ref}>
+          <FixedSizeGrid
+            columnWidth={columnWidth}
+            rowHeight={rowHeight}
+            width={width}
+            height={height}
+            rowCount={rowCount}
+            columnCount={columnCount}
+            overscanRowCount={3}
+          >
+            {({ columnIndex, rowIndex, style }) => {
+              const following = allFollowingsFiltered[rowIndex * 2 + columnIndex];
+              if (!following) return null;
+              return (
+                <div style={style}>
+                  <Following
+                    key={following.id}
+                    following={following}
+                    keys={keys}
+                    followingsMap={followingsMap}
+                    followingExistsMap={followingExistsMap}
+                    followerExistsMap={followerExistsMap}
+                    setFetching={setFetching}
+                    fetching={fetching}
+                    displayName={displayName}
+                    displayUsername={displayUsername}
+                    displayHost={displayHost}
+                    show
+                    width={elementWidth}
+                  />
+                </div>
+              );
+            }}
+          </FixedSizeGrid>
+        </Box>
+      </Box>
     </Box>
   );
 }
