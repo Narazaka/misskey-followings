@@ -21,6 +21,7 @@ export function Following({
   displayUsername,
   displayHost,
   show,
+  width,
 }: {
   following: FollowInfo;
   keys: AppStore["keys"];
@@ -33,6 +34,7 @@ export function Following({
   displayUsername: boolean;
   displayHost: boolean;
   show: boolean;
+  width?: string;
 }) {
   const FollowButton = useMemo(
     () =>
@@ -105,7 +107,7 @@ export function Following({
     <Stack
       p="xs"
       m="xs"
-      sx={{ borderRadius: "10px", border: "1px solid #ccc" }}
+      sx={{ borderRadius: "10px", border: "1px solid #ccc", width }}
       display={show ? undefined : "none"}
     >
       <FollowingInfo following={following} />
