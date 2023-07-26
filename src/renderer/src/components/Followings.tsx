@@ -6,7 +6,7 @@ import { notifications } from "@mantine/notifications";
 import { FollowingsMap } from "src/preload/FollowingsMap";
 import { uniqBy } from "@renderer/util/uniqBy";
 import { set } from "@renderer/util/set";
-import { useInputState, useLocalStorage } from "@mantine/hooks";
+import { useInputState, useLocalStorage, useViewportSize } from "@mantine/hooks";
 import { uniqSortBy } from "@renderer/util/uniqSortBy";
 import { sortBy } from "@renderer/util/sortBy";
 import { Following } from "./Following";
@@ -233,6 +233,9 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
     defaultValue: true,
   });
 
+  const { width } = useViewportSize();
+  const columns = Math.floor(width / 320);
+
   return (
     <Box my="xs">
       <Group>
@@ -272,28 +275,29 @@ function Followings({ keys }: { keys: AppStore["keys"] }): JSX.Element {
           host
         </Chip>
       </Group>
-      <Grid my="xs">
+      <Grid my="xs" columns={columns} gutter="xs">
         {allFollowings.map((following) => {
+          const show =
+            ((showFollowings && following.type === "following") ||
+              (showFollowers && following.type === "follower")) &&
+            (!filter || following.gid.includes(filter) || following.name?.includes(filter)) &&
+            (!filterHosts.length || filterHosts.includes(following.host));
           return (
-            <Following
-              key={following.id}
-              following={following}
-              keys={keys}
-              followingsMap={followingsMap}
-              followingExistsMap={followingExistsMap}
-              followerExistsMap={followerExistsMap}
-              setFetching={setFetching}
-              fetching={fetching}
-              displayName={displayName}
-              displayUsername={displayUsername}
-              displayHost={displayHost}
-              show={
-                ((showFollowings && following.type === "following") ||
-                  (showFollowers && following.type === "follower")) &&
-                (!filter || following.gid.includes(filter) || following.name?.includes(filter)) &&
-                (!filterHosts.length || filterHosts.includes(following.host))
-              }
-            />
+            <Grid.Col key={following.id} span={1} display={show ? undefined : "none"}>
+              <Following
+                following={following}
+                keys={keys}
+                followingsMap={followingsMap}
+                followingExistsMap={followingExistsMap}
+                followerExistsMap={followerExistsMap}
+                setFetching={setFetching}
+                fetching={fetching}
+                displayName={displayName}
+                displayUsername={displayUsername}
+                displayHost={displayHost}
+                show
+              />
+            </Grid.Col>
           );
         })}
       </Grid>
