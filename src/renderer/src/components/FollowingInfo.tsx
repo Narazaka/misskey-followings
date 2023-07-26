@@ -5,14 +5,18 @@ import type { FollowInfo } from "./Followings";
 export const FollowingInfo = memo(function FollowingInfo({ following }: { following: FollowInfo }) {
   return (
     <>
-      <Group>
+      <Group noWrap>
         <Avatar radius="xl" src={following.avatarUrl} />
-        <Text>{following.name || following.username}</Text>
+        <Text truncate title={following.name || following.username}>
+          {following.name || following.username}
+        </Text>
       </Group>
       <a href={following.url || `https://${following.host}/@${following.username}`}>
-        <Group>
+        <Group noWrap>
           {following.faviconUrl && <Image maw="16px" src={following.faviconUrl} />}
-          <Text>{following.gid}</Text>
+          <Text truncate title={following.gid}>
+            {following.gid}
+          </Text>
         </Group>
       </a>
     </>
