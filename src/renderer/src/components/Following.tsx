@@ -107,6 +107,7 @@ export function Following({
     <Stack
       p="xs"
       m="xs"
+      spacing="xs"
       sx={{ borderRadius: "10px", border: "1px solid #ccc", width }}
       display={show ? undefined : "none"}
     >
